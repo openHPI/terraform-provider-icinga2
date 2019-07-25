@@ -1,0 +1,12 @@
+image: golang:1.12
+
+build:
+  stage: build
+  script:
+    - make
+    - mkdir -p bin
+    - cp /go/bin/terraform-provider-icinga2 bin/
+  artifacts:
+    name: terraform-provider-icinga2
+    paths:
+    - bin
