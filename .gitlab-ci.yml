@@ -1,5 +1,9 @@
 image: golang:1.12
 
+variables:
+  GOFLAGS: -mod=vendor
+  GO111MODULE: on
+
 build:
   stage: build
   script:
