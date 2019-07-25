@@ -16,6 +16,13 @@ type ServiceStruct struct {
 	//	Meta  struct{}     `json:"meta"`
 	Name string `json:"name"`
 	Type string `json:"type"`
+	Zone string `json:"zone"`
+}
+
+//ServiceStruct stores service results
+type NewServiceStruct struct {
+	Attrs interface{} `json:"attrs"`
+	Templates     []string      `json:"templates,omitempty"`
 }
 
 type ServiceAttrs struct {
@@ -24,9 +31,10 @@ type ServiceAttrs struct {
 	//	DisplayName   string        `json:"display_name"`
 	//	Groups        []interface{} `json:"groups"`
 	//Name string `json:"name"`
-	//	Templates     []string      `json:"templates"`
 	//	Type string `json:"type"`
+	Templates     []string      `json:"templates,omitempty"`
 	Vars          interface{}   `json:"vars"`
+	Zone          string        `json:"zone,omitempty"`
 }
 
 // CheckcommandStruct is a struct used to store results from an Icinga2 Checkcommand API call.
@@ -65,30 +73,39 @@ type HostgroupAttrs struct {
 	Groups      []string `json:"groups"`
 	Notes       string   `json:"notes"`
 	NotesURL    string   `json:"notes_url"`
-	Templates   []string `json:"templates"`
 }
 
 // HostStruct is a struct used to store results from an Icinga2 Host API Call. The content are also used to generate the JSON for the CreateHost call
 type HostStruct struct {
-	Name  string    `json:"name"`
-	Type  string    `json:"type"`
-	Attrs HostAttrs `json:"attrs"`
-	Meta  struct{}  `json:"meta"`
-	Joins struct{}  `json:"stuct"`
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`
+	Attrs       HostAttrs   `json:"attrs"`
+	Meta        struct{}    `json:"meta"`
+	Joins       struct{}    `json:"stuct"`
+	Templates   []string    `json:"templates"`
 }
 
 // HostAttrs This is struct lists the attributes that can be set during a CreateHost call. The contents of the struct is converted into JSON
 type HostAttrs struct {
-	ActionURL    string      `json:"action_url"`
-	Address      string      `json:"address"`
-	Address6     string      `json:"address6"`
-	CheckCommand string      `json:"check_command"`
-	DisplayName  string      `json:"display_name"`
-	Groups       []string    `json:"groups"`
-	Notes        string      `json:"notes"`
-	NotesURL     string      `json:"notes_url"`
-	Templates    []string    `json:"templates"`
-	Vars         interface{} `json:"vars"`
+	ActionURL      string      `json:"action_url"`
+	Address        string      `json:"address"`
+	Address6       string      `json:"address6"`
+	CheckCommand   string      `json:"check_command"`
+	DisplayName    string      `json:"display_name"`
+	Groups         []string    `json:"groups"`
+	Notes          string      `json:"notes"`
+	NotesURL       string      `json:"notes_url"`
+	Vars           interface{} `json:"vars,omitempty"`
+	Templates      []string    `json:"templates"`
+	Zone           string      `json:"zone,omitempty"`
+}
+
+// HostStruct is a struct used to store results from an Icinga2 Host API Call. The content are also used to generate the JSON for the CreateHost call
+type NewHostStruct struct {
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`
+	Attrs       interface{} `json:"attrs"`
+	Templates   []string    `json:"templates"`
 }
 
 // APIResult Stores the results from NewApiRequest

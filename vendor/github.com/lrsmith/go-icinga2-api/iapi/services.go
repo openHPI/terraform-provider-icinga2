@@ -32,22 +32,33 @@ func (server *Server) GetService(servicename, hostname string) ([]ServiceStruct,
 }
 
 // CreateService ...
-func (server *Server) CreateService(servicename, hostname, checkCommand string, variables map[string]string) ([]ServiceStruct, error) {
+func (server *Server) CreateService(servicename, hostname string, attrs ServiceAttrs) ([]ServiceStruct, error) {
+	attrsEncoded, marshalErr := json.Marshal(attrs)
 
-	var newAttrs ServiceAttrs
-	newAttrs.CheckCommand = checkCommand
-	newAttrs.Vars = variables
+	attrsProceed := map[string]interface{}{}
 
-	var newService ServiceStruct
-	newService.Attrs = newAttrs
+	json.Unmarshal([]byte(attrsEncoded), &attrsProceed)
+
+	vars, ok := attrsProceed["vars"]
+	if ok {
+		delete(attrsProceed, "vars")
+		iterator := vars.(map[string]interface{})
+		for key, value := range iterator {
+			attrsProceed["vars." + key] = value
+		}
+	}
+
+	delete(attrsProceed, "templates")
+
+	var newService NewServiceStruct
+	newService.Attrs = attrsProceed
+	newService.Templates = attrs.Templates
 
 	// Create JSON from completed struct
 	payloadJSON, marshalErr := json.Marshal(newService)
 	if marshalErr != nil {
 		return nil, marshalErr
 	}
-
-	//fmt.Printf("<payload> %s\n", payloadJSON)
 
 	// Make the API request to create the hosts.
 	results, err := server.NewAPIRequest("PUT", "/objects/services/"+hostname+"!"+servicename, []byte(payloadJSON))

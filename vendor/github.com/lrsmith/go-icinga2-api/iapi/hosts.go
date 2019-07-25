@@ -33,31 +33,32 @@ func (server *Server) GetHost(hostname string) ([]HostStruct, error) {
 }
 
 // CreateHost ...
-func (server *Server) CreateHost(hostname, address, checkCommand string, variables map[string]string, templates []string, groups []string) ([]HostStruct, error) {
+func (server *Server) CreateHost(hostname, address, checkCommand string, variables map[string]interface{}, templates []string, groups []string, zone string) ([]HostStruct, error) {
+	attrs := map[string]interface{}{}
+	attrs["address"] = address
+	attrs["check_command"] = checkCommand
 
-	var newAttrs HostAttrs
-	newAttrs.Address = address
-	newAttrs.CheckCommand = checkCommand
-	newAttrs.Vars = variables
-	newAttrs.Templates = templates
+	if variables != nil {
+		for key, value := range variables {
+			attrs["vars." + key] = value
+		}
+	}
+	if groups != nil {
+	  attrs["groups"] = groups
+	}
+	attrs["zone"] = zone
 
-        if groups == nil {
-          groups = []string{} 
-        }
-        newAttrs.Groups = groups
-
-	var newHost HostStruct
+	var newHost NewHostStruct
 	newHost.Name = hostname
 	newHost.Type = "Host"
-	newHost.Attrs = newAttrs
+	newHost.Attrs = attrs
+	newHost.Templates = templates
 
 	// Create JSON from completed struct
 	payloadJSON, marshalErr := json.Marshal(newHost)
 	if marshalErr != nil {
 		return nil, marshalErr
 	}
-
-	//fmt.Printf("<payload> %s\n", payloadJSON)
 
 	// Make the API request to create the hosts.
 	results, err := server.NewAPIRequest("PUT", "/objects/hosts/"+hostname, []byte(payloadJSON))

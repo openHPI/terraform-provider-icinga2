@@ -1,6 +1,7 @@
 package icinga2
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -51,6 +52,11 @@ func resourceIcinga2Host() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"zone": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -62,18 +68,26 @@ func resourceIcinga2HostCreate(d *schema.ResourceData, meta interface{}) error {
 	hostname := d.Get("hostname").(string)
 	address := d.Get("address").(string)
 	checkCommand := d.Get("check_command").(string)
+	zone := d.Get("zone").(string)
+	vars := make(map[string]interface{})
 
-	vars := make(map[string]string)
+	iterator := d.Get("vars").(map[string]interface{})
+	for key, value := range iterator {
+		if json.Valid([]byte(value.(string))) {
+			decoded_var := make(map[string]interface{})
+			err := json.Unmarshal([]byte(value.(string)), &decoded_var)
+			if err != nil {
+				return err
+			}
+			vars[key] = decoded_var
+		} else {
+			vars[key] = value
+		}
+	}
 
 	groups := make([]string, len(d.Get("groups").([]interface{})))
 	for i, v := range d.Get("groups").([]interface{}) {
 		groups[i] = v.(string)
-	}
-
-	// Normalize from map[string]interface{} to map[string]string
-	iterator := d.Get("vars").(map[string]interface{})
-	for key, value := range iterator {
-		vars[key] = value.(string)
 	}
 
 	templates := make([]string, len(d.Get("templates").([]interface{})))
@@ -82,7 +96,7 @@ func resourceIcinga2HostCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Call CreateHost with normalized data
-	hosts, err := client.CreateHost(hostname, address, checkCommand, vars, templates, groups)
+	hosts, err := client.CreateHost(hostname, address, checkCommand, vars, templates, groups, zone)
 	if err != nil {
 		return err
 	}

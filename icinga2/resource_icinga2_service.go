@@ -11,6 +11,7 @@ func resourceIcinga2Service() *schema.Resource {
 
 	return &schema.Resource{
 		Create: resourceIcinga2ServiceCreate,
+		Exists: resourceIcinga2ServiceExists,
 		Read:   resourceIcinga2ServiceRead,
 		Delete: resourceIcinga2ServiceDelete,
 		Schema: map[string]*schema.Schema{
@@ -37,6 +38,20 @@ func resourceIcinga2Service() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+			"templates": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"zone": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Zone",
+			},
 		},
 	}
 }
@@ -47,17 +62,19 @@ func resourceIcinga2ServiceCreate(d *schema.ResourceData, meta interface{}) erro
 
 	hostname := d.Get("hostname").(string)
 	name := d.Get("name").(string)
-	checkcommand := d.Get("check_command").(string)
 
-	vars := make(map[string]string)
+	var attrs iapi.ServiceAttrs
+	attrs.CheckCommand = d.Get("check_command").(string)
 
-	// Normalize from map[string]interface{} to map[string]string
-	iterator := d.Get("vars").(map[string]interface{})
-	for key, value := range iterator {
-		vars[key] = value.(string)
+	attrs.Vars = d.Get("vars").(map[string]interface{})
+
+	attrs.Templates = make([]string, len(d.Get("templates").([]interface{})))
+	for i, v := range d.Get("templates").([]interface{}) {
+		attrs.Templates[i] = v.(string)
 	}
+	attrs.Zone = d.Get("zone").(string)
 
-	services, err := client.CreateService(name, hostname, checkcommand, vars)
+	services, err := client.CreateService(name, hostname, attrs)
 	if err != nil {
 		return err
 	}
@@ -97,6 +114,7 @@ func resourceIcinga2ServiceRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("hostname", hostname)
 			d.Set("check_command", service.Attrs.CheckCommand)
 			d.Set("vars", service.Attrs.Vars)
+			d.Set("zone", service.Attrs.Zone)
 			found = true
 		}
 	}
@@ -107,6 +125,27 @@ func resourceIcinga2ServiceRead(d *schema.ResourceData, meta interface{}) error 
 
 	return nil
 
+}
+
+func resourceIcinga2ServiceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+
+	client := meta.(*iapi.Server)
+
+	hostname := d.Get("hostname").(string)
+	name := d.Get("name").(string)
+
+	services, err := client.GetService(name, hostname)
+	if err != nil {
+		return false, err
+	}
+
+	for _, service := range services {
+		if service.Name == hostname+"!"+name {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func resourceIcinga2ServiceDelete(d *schema.ResourceData, meta interface{}) error {
