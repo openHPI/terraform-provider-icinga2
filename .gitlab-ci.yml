@@ -2,14 +2,22 @@ image: golang:1.14
 
 variables:
   GOFLAGS: -mod=vendor
+  GOARCH: amd64
 
-build:
+.build:
   stage: build
-  script:
-    - make
-    - mkdir -p bin
-    - cp /go/bin/terraform-provider-icinga2 bin/
+  script: 
+    - go build -v -ldflags="-s -w" -o terraform-provider-icinga2-${GOOS}-${GOARCH}
   artifacts:
-    name: terraform-provider-icinga2
-    paths:
-    - bin
+    paths: 
+      - terraform-provider-icinga2-*
+
+linux-amd64:
+  extends: .build
+  variables:
+    GOOS: linux
+
+darwin-amd64:
+  extends: .build
+  variables:
+    GOOS: darwin
