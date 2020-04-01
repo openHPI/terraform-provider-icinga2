@@ -1,8 +1,7 @@
-image: golang:1.12
+image: golang:1.14
 
 variables:
   GOFLAGS: -mod=vendor
-  GO111MODULE: 'on'
 
 build:
   stage: build
