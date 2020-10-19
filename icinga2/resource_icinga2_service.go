@@ -107,7 +107,6 @@ func resourceIcinga2ServiceRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	found := false
 	for _, service := range services {
 		if service.Name == hostname+"!"+name {
 			d.SetId(hostname + "!" + name)
@@ -115,16 +114,10 @@ func resourceIcinga2ServiceRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("check_command", service.Attrs.CheckCommand)
 			d.Set("vars", service.Attrs.Vars)
 			d.Set("zone", service.Attrs.Zone)
-			found = true
 		}
 	}
 
-	if !found {
-		return fmt.Errorf("Failed to Read Service %s!%s : %s", hostname, name, err)
-	}
-
 	return nil
-
 }
 
 func resourceIcinga2ServiceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
