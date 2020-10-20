@@ -12,6 +12,7 @@ func resourceIcinga2Host() *schema.Resource {
 
 	return &schema.Resource{
 		Create: resourceIcinga2HostCreate,
+		Exists: resourceIcinga2HostExists,
 		Read:   resourceIcinga2HostRead,
 		Delete: resourceIcinga2HostDelete,
 		Schema: map[string]*schema.Schema{
@@ -114,6 +115,24 @@ func resourceIcinga2HostCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func resourceIcinga2HostExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+	client := meta.(*iapi.Server)
+	hostname := d.Get("hostname").(string)
+
+	hosts, err := client.GetHost(hostname)
+	if err != nil {
+		return false, err
+	}
+
+	for _, host := range hosts {
+		if host.Name == hostname {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func resourceIcinga2HostRead(d *schema.ResourceData, meta interface{}) error {
