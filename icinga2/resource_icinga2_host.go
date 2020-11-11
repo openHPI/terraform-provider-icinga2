@@ -11,10 +11,13 @@ import (
 func resourceIcinga2Host() *schema.Resource {
 
 	return &schema.Resource{
-		Create: resourceIcinga2HostCreate,
-		Exists: resourceIcinga2HostExists,
-		Read:   resourceIcinga2HostRead,
-		Delete: resourceIcinga2HostDelete,
+		Create:   resourceIcinga2HostCreate,
+		Exists:   resourceIcinga2HostExists,
+		Read:     resourceIcinga2HostRead,
+		Delete:   resourceIcinga2HostDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceIcinga2HostImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"hostname": {
 				Type:        schema.TypeString,
@@ -171,4 +174,11 @@ func resourceIcinga2HostDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 
+}
+
+func resourceIcinga2HostImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	d.Set("hostname", d.Id())
+	err := resourceIcinga2HostRead(d, meta)
+
+	return []*schema.ResourceData{d}, err
 }
