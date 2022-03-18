@@ -11,10 +11,10 @@ import (
 func resourceIcinga2Host() *schema.Resource {
 
 	return &schema.Resource{
-		Create:   resourceIcinga2HostCreate,
-		Exists:   resourceIcinga2HostExists,
-		Read:     resourceIcinga2HostRead,
-		Delete:   resourceIcinga2HostDelete,
+		Create: resourceIcinga2HostCreate,
+		Exists: resourceIcinga2HostExists,
+		Read:   resourceIcinga2HostRead,
+		Delete: resourceIcinga2HostDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceIcinga2HostImport,
 		},
