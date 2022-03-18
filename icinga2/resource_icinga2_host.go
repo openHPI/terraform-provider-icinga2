@@ -80,10 +80,11 @@ func resourceIcinga2HostCreate(d *schema.ResourceData, meta interface{}) error {
 		if json.Valid([]byte(value.(string))) {
 			decoded_var := make(map[string]interface{})
 			err := json.Unmarshal([]byte(value.(string)), &decoded_var)
-			if err != nil {
-				return err
+			if err == nil {
+				vars[key] = decoded_var
+			} else {
+				vars[key] = value
 			}
-			vars[key] = decoded_var
 		} else {
 			vars[key] = value
 		}
